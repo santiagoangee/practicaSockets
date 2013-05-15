@@ -9,9 +9,9 @@ package co.edu.eafit.angeeRestrepo.practicaSockets;
  * @author santiago
  */
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
-import java.io.PrintWriter;
 
 public class ChatServerReturn implements Runnable{
     
@@ -52,11 +52,31 @@ public class ChatServerReturn implements Runnable{
             try {
                 input = new Scanner(socket.getInputStream());
                 output = new PrintWriter(socket.getOutputStream());
-            } catch (Exception e) {
                 
+                while(true) {
+                    checkConnection();
+                    
+                    if(input.hasNext()) {
+                        return;
+                    }
+                    
+                    message =input.nextLine();
+                    
+                    System.out.println("Client said: " + message);
+                    
+                    for(int i = 0; i < ChatServer.connectionArray.size(); ++i) {
+                        Socket tempSocket = ChatServer.connectionArray.get(i);
+                        PrintWriter tempOutput = new PrintWriter(tempSocket.getOutputStream());
+                        tempOutput.println(message);
+                        tempOutput.flush();
+                        System.out.println("Sent to: " + tempSocket.getLocalAddress().getHostName());
+                    }
+                }
+            } finally {
+                socket.close();
             }
         } catch (Exception e) {
-            
+            System.err.println(e);
         }
     }
 }
